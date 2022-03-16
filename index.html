@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8" />
+    </head>
+    <body>
+        <h1>WebSocket test page</h1>
+        <canvas id="canvas" width="400" height="300" style="border:1px solid black"></canvas>
+
+        <script>
+            document.addEventListener('mousemove', draw);
+            document.addEventListener('mousedown', setPosition);
+            document.addEventListener('mouseenter', setPosition);
+
+            var canvas = document.getElementById("canvas");
+            var context = canvas.getContext("2d");
+            var rect = canvas.getBoundingClientRect();
+            var pos = { x: 0, y: 0};
+            var socket = new WebSocket("ws://localhost:3001");
+
+            socket.onmessage = function(event){
+                let coord = event.data.split(",");
+                context.beginPath();
+
+                context.lineWidth = 3;
+                context.lineCap = 'round';
+                context.strokeStyle = '#000000';
+
+                context.moveTo(coord[0], coord[1]);
+                context.lineTo(coord[2], coord[3]);
+
+                context.stroke();
+            }
+
+            function draw(e) {
+                if (e.buttons !== 1) return;
+
+                let message = String(parseInt(pos.x)) + "," + String(parseInt(pos.y)) + ",";
+                setPosition(e);
+                message = message + String(parseInt(pos.x)) + "," + String(parseInt(pos.y));
+
+                socket.send(message);
+            }
+
+            function setPosition(e) {
+                pos.x = e.clientX - rect.left;
+                pos.y = e.clientY - rect.top;
+            }
+        </script>
+    </body>
+</html>
